@@ -98,6 +98,22 @@ curl -iL -X POST http://localhost:8080/auctions \
   }'
 ```
 
+### Create auction (reserve not met -> no sale)
+```bash
+curl -iL -X POST http://localhost:8080/auctions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "sellerId": "seller-1",
+    "title": "Rare Coin",
+    "startingPrice": 1000,
+    "reservePrice": 5000,
+    "startTimeEpochMs": 1738900000000,
+    "endTimeEpochMs": 1738990000000
+  }'
+```
+
+If the highest bid is below `reservePrice`, closing the auction returns `CLOSED_NO_SALE` with no winning bidder.
+
 ### Place bid
 ```bash
 curl -iL -X POST http://localhost:8080/auctions/{auctionId}/bids \
@@ -125,6 +141,14 @@ curl http://localhost:8080/auctions/{auctionId}/bids?limit=50
 ### Close auction
 ```bash
 curl -X POST http://localhost:8080/auctions/{auctionId}/close
+```
+
+## Error format
+
+All validation errors use a consistent shape:
+
+```json
+{"code":"VALIDATION_ERROR","message":"field message"}
 ```
 
 ## Notes on scale

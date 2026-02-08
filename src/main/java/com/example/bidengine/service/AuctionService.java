@@ -26,10 +26,13 @@ public class AuctionService {
     }
 
     public AuctionResponse createAuction(CreateAuctionRequest request) {
+        long now = Instant.now().toEpochMilli();
         if (request.endTimeEpochMs() <= request.startTimeEpochMs()) {
             throw new IllegalArgumentException("endTimeEpochMs must be greater than startTimeEpochMs");
         }
-        long now = Instant.now().toEpochMilli();
+        if (request.endTimeEpochMs() <= now) {
+            throw new IllegalArgumentException("endTimeEpochMs must be in the future");
+        }
         String auctionId = UUID.randomUUID().toString();
         AuctionResponse auction = new AuctionResponse(
                 auctionId,

@@ -22,7 +22,9 @@ class AuctionControllerTest {
     @BeforeEach
     void setUp() {
         auctionService = Mockito.mock(AuctionService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new AuctionController(auctionService)).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(new AuctionController(auctionService))
+                .setControllerAdvice(new ApiExceptionHandler())
+                .build();
     }
 
     @Test
@@ -62,7 +64,8 @@ class AuctionControllerTest {
                                 {"sellerId":"s1","title":"t","startingPrice":100,
                                  "startTimeEpochMs":10,"endTimeEpochMs":20}
                                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("INVALID_AUCTION_TIME"));
     }
 
     @Test

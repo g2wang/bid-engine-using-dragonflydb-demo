@@ -81,7 +81,9 @@ class AuctionRedisRepositoryTest {
     @Test
     void createAuctionStoresHash() {
         HashOperations<String, Object, Object> hashOps = Mockito.mock(HashOperations.class);
+        ZSetOperations<String, String> zsetOps = Mockito.mock(ZSetOperations.class);
         Mockito.when(redisTemplate.opsForHash()).thenReturn(hashOps);
+        Mockito.when(redisTemplate.opsForZSet()).thenReturn(zsetOps);
 
         AuctionResponse auction = new AuctionResponse(
                 "a1", "s1", "title", "desc", "OPEN",
@@ -90,6 +92,7 @@ class AuctionRedisRepositoryTest {
         repository.createAuction(auction);
 
         Mockito.verify(hashOps).putAll(Mockito.eq("auction:a1"), any(Map.class));
+        Mockito.verify(zsetOps).add(Mockito.eq("auctions:byEndTime"), Mockito.eq("a1"), Mockito.eq(20.0));
     }
 
     @Test

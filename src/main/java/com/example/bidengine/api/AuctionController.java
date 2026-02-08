@@ -19,11 +19,7 @@ public class AuctionController {
 
     @PostMapping
     public ResponseEntity<AuctionResponse> createAuction(@Valid @RequestBody CreateAuctionRequest request) {
-        try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(auctionService.createAuction(request));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(auctionService.createAuction(request));
     }
 
     @GetMapping("/{auctionId}")
