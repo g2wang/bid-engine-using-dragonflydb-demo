@@ -14,6 +14,19 @@ docker compose up -d
 ./gradlew bootRun
 ```
 
+## Tests
+
+```bash
+./gradlew test
+./gradlew integrationTest
+```
+
+Integration tests require Docker and use Testcontainers to start DragonflyDB.
+
+## Kafka JSON note
+
+Spring Kafka's `JsonSerializer`/`JsonDeserializer` currently depends on Jackson 2.x types. This project pins `com.fasterxml.jackson.core:jackson-databind` to satisfy that dependency alongside Jackson 3 used by Spring Boot 4.
+
 ## REST API
 
 ### Create auction
