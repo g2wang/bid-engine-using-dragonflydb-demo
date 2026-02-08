@@ -85,7 +85,7 @@ Spring Kafka's `JsonSerializer`/`JsonDeserializer` currently depends on Jackson 
 
 ### Create auction
 ```bash
-curl -X POST http://localhost:8080/auctions \
+curl -iL -X POST http://localhost:8080/auctions \
   -H 'Content-Type: application/json' \
   -d '{
     "sellerId": "seller-1",
@@ -100,13 +100,17 @@ curl -X POST http://localhost:8080/auctions \
 
 ### Place bid
 ```bash
-curl -X POST http://localhost:8080/auctions/{auctionId}/bids \
+curl -iL -X POST http://localhost:8080/auctions/{auctionId}/bids \
   -H 'Content-Type: application/json' \
   -d '{
     "bidderId": "user-9",
     "amount": 1200
   }'
 ```
+#### Note: If the action has ENDED, the HTTP status code will be 409.
+    status: "ENDED" means the auction’s endTimeEpochMs is already in the past at
+    the time you place the bid. When the Lua script returns ENDED, the service does
+    not publish a Kafka event, so Postgres never gets a bid row.
 
 ### Get auction
 ```bash
