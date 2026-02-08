@@ -22,7 +22,7 @@ Here’s what that MVP typically includes, and how it works end‑to‑end:
 3. **Close auction**
    - When the auction ends (or is closed manually), status becomes `CLOSED`.
    - Highest bid (if any) becomes the winning bid.
-   - If there is a reserve price and the highest bid is below it, the auction can be closed with **no winner** (not implemented yet in our MVP, but easy to add).
+   - If there is a reserve price and the highest bid is below it, the auction can be closed with **no winner**.
 
 **What this MVP does**
 - Create auctions.
