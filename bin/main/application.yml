@@ -23,7 +23,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bidengine
     username: bidengine
-    password: ${BID_ENGINE_DB_PASSWORD}
+    password: bidengine
   jpa:
     hibernate:
       ddl-auto: update
