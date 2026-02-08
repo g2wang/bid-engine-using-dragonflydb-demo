@@ -1,0 +1,3 @@
+spring:
+  application:
+    name: bid-engine-using-dragonflydb-demo
