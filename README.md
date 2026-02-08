@@ -98,7 +98,7 @@ curl -iL -X POST http://localhost:8080/auctions \
   }'
 ```
 
-#### Note: if the auction end time has expired (not in the future) when the auction is created, the submission will be rejected with HTTP code 400 (BAD REQUEST). 
+**Note**: if the auction end time has expired (not in the future) when the auction is created, the submission will be rejected with HTTP code 400 (BAD REQUEST). 
 
 ### Create another auction
 ```bash
@@ -114,7 +114,7 @@ curl -iL -X POST http://localhost:8080/auctions \
   }'
 ```
 
-#### Note: If the highest bid is below `reservePrice`, closing the auction returns `CLOSED_NO_SALE` with no winning bidder.
+**Note**: If the highest bid is below `reservePrice`, closing the auction returns `CLOSED_NO_SALE` with no winning bidder.
 
 ### Place bid
 ```bash
@@ -125,7 +125,8 @@ curl -iL -X POST http://localhost:8080/auctions/{auctionId}/bids \
     "amount": 1200
   }'
 ```
-#### Note: If the auction has ENDED, the HTTP status code will be 409.
+
+**Note**: If the auction has ENDED, the HTTP status code will be 409.
     status: "ENDED" means the auction’s endTimeEpochMs is already in the past at
     the time you place the bid. When the Lua script returns ENDED, the service does
     not publish a Kafka event, so Postgres never gets a bid row.
