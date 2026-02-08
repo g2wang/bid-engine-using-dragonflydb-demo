@@ -35,3 +35,6 @@ spring:
 bidengine:
   kafka:
     topic: auction-events
+  scheduler:
+    close-delay-ms: 1000
+    close-batch-limit: 200

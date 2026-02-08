@@ -19,6 +19,7 @@ public class AuctionRedisRepository {
     private static final String AUCTION_KEY_PREFIX = "auction:";
     private static final String BIDS_KEY_SUFFIX = ":bids";
     private static final String BID_KEY_PREFIX = "bid:";
+    private static final String AUCTIONS_BY_END_TIME = "auctions:byEndTime";
 
     private static final String PLACE_BID_SCRIPT = """
             if redis.call('EXISTS', KEYS[1]) == 0 then
@@ -70,13 +71,20 @@ public class AuctionRedisRepository {
             if status ~= 'OPEN' then
               return { 'NOT_OPEN' }
             end
-            redis.call('HSET', KEYS[1],
-              'status', 'CLOSED',
-              'updatedAtEpochMs', ARGV[1]
-            )
+            local reserve = redis.call('HGET', KEYS[1], 'reservePrice')
             local highestBid = redis.call('HGET', KEYS[1], 'highestBid')
             local highestBidderId = redis.call('HGET', KEYS[1], 'highestBidderId')
-            return { 'OK', highestBid, highestBidderId }
+            local finalStatus = 'CLOSED'
+            if reserve then
+              if (not highestBid) or (tonumber(highestBid) < tonumber(reserve)) then
+                finalStatus = 'CLOSED_NO_SALE'
+              end
+            end
+            redis.call('HSET', KEYS[1],
+              'status', finalStatus,
+              'updatedAtEpochMs', ARGV[1]
+            )
+            return { finalStatus, highestBid, highestBidderId }
             """;
 
     private final RedisTemplate<String, String> redisTemplate;
@@ -112,6 +120,7 @@ public class AuctionRedisRepository {
         fields.put("createdAtEpochMs", String.valueOf(auction.createdAtEpochMs()));
         fields.put("updatedAtEpochMs", String.valueOf(auction.updatedAtEpochMs()));
         redisTemplate.opsForHash().putAll(key, fields);
+        redisTemplate.opsForZSet().add(AUCTIONS_BY_END_TIME, auction.auctionId(), auction.endTimeEpochMs());
     }
 
     public AuctionResponse getAuction(String auctionId) {
@@ -171,12 +180,12 @@ public class AuctionRedisRepository {
             return CloseAuctionResult.error("UNKNOWN");
         }
         String status = response.get(0).toString();
-        if (!"OK".equals(status)) {
+        if (!"CLOSED".equals(status) && !"CLOSED_NO_SALE".equals(status)) {
             return CloseAuctionResult.error(status);
         }
         Long highestBid = response.size() > 1 && response.get(1) != null ? Long.parseLong(response.get(1).toString()) : null;
         String highestBidderId = response.size() > 2 && response.get(2) != null ? response.get(2).toString() : null;
-        return CloseAuctionResult.success(highestBid, highestBidderId);
+        return CloseAuctionResult.success(status, highestBid, highestBidderId);
     }
 
     public List<BidResponse> listTopBids(String auctionId, int limit) {
@@ -201,6 +210,18 @@ public class AuctionRedisRepository {
             ));
         }
         return bids;
+    }
+
+    public List<String> listAuctionsEndingBefore(long nowEpochMs, int limit) {
+        var range = redisTemplate.opsForZSet().rangeByScore(AUCTIONS_BY_END_TIME, 0, nowEpochMs, 0, limit);
+        if (range == null || range.isEmpty()) {
+            return List.of();
+        }
+        return new ArrayList<>(range);
+    }
+
+    public void removeFromSchedule(String auctionId) {
+        redisTemplate.opsForZSet().remove(AUCTIONS_BY_END_TIME, auctionId);
     }
 
     private static String auctionKey(String auctionId) {
@@ -240,13 +261,13 @@ public class AuctionRedisRepository {
         }
     }
 
-    public record CloseAuctionResult(boolean ok, String errorCode, Long highestBid, String highestBidderId) {
-        public static CloseAuctionResult success(Long highestBid, String highestBidderId) {
-            return new CloseAuctionResult(true, null, highestBid, highestBidderId);
+    public record CloseAuctionResult(boolean ok, String status, String errorCode, Long highestBid, String highestBidderId) {
+        private static CloseAuctionResult success(String status, Long highestBid, String highestBidderId) {
+            return new CloseAuctionResult(true, status, null, highestBid, highestBidderId);
         }
 
         public static CloseAuctionResult error(String code) {
-            return new CloseAuctionResult(false, code, null, null);
+            return new CloseAuctionResult(false, null, code, null, null);
         }
     }
 }

@@ -104,6 +104,9 @@ public class AuctionService {
         if (!result.ok()) {
             return new CloseAuctionResponse(auctionId, result.errorCode(), null, null);
         }
+        String status = result.status();
+        Long winningBid = "CLOSED".equals(status) ? result.highestBid() : null;
+        String winningBidderId = "CLOSED".equals(status) ? result.highestBidderId() : null;
         kafkaTemplate.send(topic, auctionId, new AuctionEvent(
                 UUID.randomUUID().toString(),
                 "AUCTION_CLOSED",
@@ -117,14 +120,23 @@ public class AuctionService {
                 null,
                 null,
                 null,
-                result.highestBidderId(),
-                result.highestBid(),
-                "CLOSED"
+                winningBidderId,
+                winningBid,
+                status
         ));
-        return new CloseAuctionResponse(auctionId, "CLOSED", result.highestBid(), result.highestBidderId());
+        return new CloseAuctionResponse(auctionId, status, winningBid, winningBidderId);
     }
 
     public List<BidResponse> listTopBids(String auctionId, int limit) {
         return redisRepository.listTopBids(auctionId, limit);
+    }
+
+    public void autoCloseExpiredAuctions(int limit) {
+        long now = Instant.now().toEpochMilli();
+        List<String> expired = redisRepository.listAuctionsEndingBefore(now, limit);
+        for (String auctionId : expired) {
+            closeAuction(auctionId);
+            redisRepository.removeFromSchedule(auctionId);
+        }
     }
 }

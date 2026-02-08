@@ -57,11 +57,12 @@ class AuctionRedisRepositoryTest {
     @Test
     void closeAuctionMapsSuccess() {
         AuctionRedisRepository localRepository = new AuctionRedisRepository(
-                new StubRedisTemplate(List.of("OK", "200", "u9"))
+                new StubRedisTemplate(List.of("CLOSED", "200", "u9"))
         );
         var result = localRepository.closeAuction("a1", 10);
 
         assertThat(result.ok()).isTrue();
+        assertThat(result.status()).isEqualTo("CLOSED");
         assertThat(result.highestBid()).isEqualTo(200L);
         assertThat(result.highestBidderId()).isEqualTo("u9");
     }

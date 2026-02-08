@@ -67,9 +67,14 @@ public class AuctionEventConsumer {
 
     private void handleAuctionClosed(AuctionEvent event) {
         auctionRepository.findById(event.auctionId()).ifPresent(entity -> {
-            entity.setStatus("CLOSED");
-            entity.setHighestBid(event.amount());
-            entity.setHighestBidderId(event.bidderId());
+            entity.setStatus(event.status() == null ? "CLOSED" : event.status());
+            if (event.amount() != null) {
+                entity.setHighestBid(event.amount());
+                entity.setHighestBidderId(event.bidderId());
+            } else {
+                entity.setHighestBid(null);
+                entity.setHighestBidderId(null);
+            }
             entity.setUpdatedAtEpochMs(event.occurredAtEpochMs());
             auctionRepository.save(entity);
         });

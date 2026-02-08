@@ -74,7 +74,7 @@ class AuctionRedisIntegrationTest {
                 "1960s model",
                 "OPEN",
                 100,
-                200L,
+                100L,
                 now - 1000,
                 now + 60_000,
                 null,

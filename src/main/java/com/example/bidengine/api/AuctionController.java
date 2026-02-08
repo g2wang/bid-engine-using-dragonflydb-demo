@@ -52,7 +52,7 @@ public class AuctionController {
     public ResponseEntity<CloseAuctionResponse> closeAuction(@PathVariable String auctionId) {
         CloseAuctionResponse response = auctionService.closeAuction(auctionId);
         return switch (response.status()) {
-            case "CLOSED" -> ResponseEntity.ok(response);
+            case "CLOSED", "CLOSED_NO_SALE" -> ResponseEntity.ok(response);
             case "NOT_FOUND" -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             case "NOT_OPEN" -> ResponseEntity.status(HttpStatus.CONFLICT).body(response);
             default -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
