@@ -24,6 +24,8 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-kafka'
+    // Spring Kafka JsonSerializer/JsonDeserializer depends on Jackson 2.x types.
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
     runtimeOnly 'org.postgresql:postgresql'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
